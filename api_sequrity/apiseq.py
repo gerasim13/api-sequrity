@@ -1,32 +1,29 @@
 from flask import Flask
+from flask import current_app, request
 
-class ApiSequrity(object):
-    """docstring for ApiSequrity"""
-    def __init__(self, arg):
+import hashlib
+
+class ApiSequrity(secret):
+    def __init__(self, secret):
         super(ApiSequrity, self).__init__()
-        self.arg = arg
+        self.secret = secret
 
-    def gen_key(uid: str):
-        secret   = os.environ['SECRET_KEY']
-        combined = secret + uid[:8]
+    def gen_key(self, uid: str):
+        combined = self.secret + uid[:8]
         hash_str = hashlib.md5(combined.encode('utf-8')).hexdigest()
         return hash_str
 
-    def check_key(uid: str, key: str, debug: bool):
-        genkey = gen_key(uid)
-        if gen_key(uid) == key:
-            return True
-        if debug:
-            abort(401, "{'message': genkey + " "  + key}")
+    def check_key(self, uid: str, key: str):
+        return self.gen_key(uid) == key
 
-    def check_request_args():
-        if 'pass' in request.args:
-            return 0, 0, 0
-        if 'key' not in request.args or 'uid' not in request.args:
-            abort(400)
-        key   = request.args.get('key')
-        uid   = request.args.get('uid')
-        debug = 'debug' in request.args
-        if not check_key(uid, key, debug) and key_check_on:
-            abort(401)
-        return key, debug, uid
+    def check_request_args(self, request):
+        with current_app.app_context():
+            if 'key' not in request.args or 'uid' not in request.args:
+                abort(400)
+            pass_check = 'pass' in request.args
+            debug      = 'debug' in request.args
+            key        = request.args.get('key')
+            uid        = request.args.get('uid')
+            if not pass_check and not self.check_key(uid, key):
+                abort(401, "{'message': genkey + " "  + key}") if debug else abort(401)
+            return key, debug, uid
