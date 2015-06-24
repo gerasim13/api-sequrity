@@ -3,7 +3,7 @@ from flask import current_app, request
 
 import hashlib
 
-class ApiSequrity(secret):
+class ApiSequrity(object):
     def __init__(self, secret):
         super(ApiSequrity, self).__init__()
         self.secret = secret
