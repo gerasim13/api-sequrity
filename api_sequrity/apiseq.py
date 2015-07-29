@@ -18,13 +18,12 @@ class ApiSequrity(object):
 
     def check_request_args(self, request):
         with current_app.app_context():
-            pass_check = 'pass' in request.args
-            debug      = 'debug' in request.args
-            key        = request.args.get('key')
-            uid        = request.args.get('uid')
-            if not pass_check:
+            debug = 'debug' in request.args
+            key   = request.args.get('key')
+            uid   = request.args.get('uid')
+            if 'pass' not in request.args:
                 if 'key' not in request.args or 'uid' not in request.args:
                     abort(400)
                 if not self.check_key(uid, key):
-                    abort(401, "{'message': genkey + " "  + key}") if debug else abort(401)
+                    abort(401, "{'message': genkey + ' ' + key}") if debug else abort(401)
             return key, debug, uid
