@@ -2,6 +2,7 @@ from flask import Flask
 from flask import current_app, request, abort
 
 import hashlib
+import json
 
 class ApiSequrity(object):
     def __init__(self, secret):
@@ -16,14 +17,20 @@ class ApiSequrity(object):
     def check_key(self, uid: str, key: str):
         return self.gen_key(uid) == key
 
+    def parse_header(self,request):
+        uid,key = request.headers.get('Credentials').split('/')
+        return uid,key
+
     def check_request_args(self, request):
         with current_app.app_context():
             debug = 'debug' in request.args
             key   = request.args.get('key')
             uid   = request.args.get('uid')
+            if uid is None and key is None:
+                uid,key = self.parse_header(request)
             if 'pass' not in request.args:
-                if 'key' not in request.args or 'uid' not in request.args:
+                if uid is None and key is None:
                     abort(400)
                 if not self.check_key(uid, key):
-                    abort(401, "{'message': genkey + ' ' + key}") if debug else abort(401)
-            return key, debug, uid
+                    abort(401, json.dumps({'message': uid + ' ' + key})) if debug else abort(401)
+            return key, uid, debug
