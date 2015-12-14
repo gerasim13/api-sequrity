@@ -18,7 +18,7 @@ class ApiSequrity(object):
         return self.gen_key(uid) == key
 
     def parse_header(self,request):
-        uid,key = request.headers.get('Credentials').split('/')
+        uid,key = request.headers.get('Credentials', '').split('/')
         return uid,key
 
     def check_request_args(self, request):
