@@ -22,15 +22,16 @@ class ApiSequrity(object):
         return uid,key
 
     def check_request_args(self, request):
+        debug   = 'debug' in request.args
+        canpass = current_app.config.get('DEBUG', False)
+        key     = request.args.get('key')
+        uid     = request.args.get('uid')
         with current_app.app_context():
-            debug = 'debug' in request.args
-            key   = request.args.get('key')
-            uid   = request.args.get('uid')
             if uid is None and key is None:
-                uid,key = self.parse_header(request)
-            if 'pass' not in request.args:
+                uid, key = self.parse_header(request)
+            if not canpass or 'pass' not in request.args:
                 if uid is None and key is None:
                     abort(400)
                 if not self.check_key(uid, key):
                     abort(401, json.dumps({'message': uid + ' ' + key})) if debug else abort(401)
-            return key, uid, debug
+        return key, uid, debug
